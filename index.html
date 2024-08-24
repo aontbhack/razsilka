@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генерация текста для рассылки</title>
+</head>
+<body>
+    <h1>Генерация текста для рассылки</h1>
+    
+    <form id="dataForm">
+        <label for="inputData">Введите данные (ФИО, Возраст; Дата рождения, Телефон, ИНН):</label><br>
+        <textarea id="inputData" name="inputData" rows="4" cols="50" placeholder="Поварницина Оксана Анатольевна\n43; 21.06.1980\nТелефон\n79127568212\n182806535866" required></textarea><br><br>
+
+        <button type="button" onclick="generateText()">Сгенерировать текст</button>
+    </form>
+
+    <h2>Сгенерированный текст:</h2>
+    <p id="generatedText"></p>
+
+    <script>
+        function generateText() {
+            // Получаем введенные данные
+            const inputData = document.getElementById('inputData').value.trim().split('\n');
+
+            // Извлекаем данные из строки
+            const fio = inputData[0].trim();
+            const dob = inputData[1].split(';')[1].trim();
+            const phone = formatPhoneNumber(inputData[3].trim());
+            const inn = inputData[4].trim();
+
+            // Формируем текст
+            const template = `Ув. пользователь сотовой связи, ${fio} ${dob}г.р.\n
+Ваш номер ${phone} будет заблокирован, Вы не продлили действие сим карты.\n
+ИНН ${inn} по договору клиентского обслуживания будет закрыт.\n
+Дальнейшее восстановление номера платное. Обратитесь по номеру технической поддержки 7 (901) 192-38-62.\n
+Успейте сделать продление сегодня и получите бонус.`;
+
+            // Отображаем текст на странице
+            document.getElementById('generatedText').textContent = template;
+        }
+
+        // Функция для форматирования номера телефона
+        function formatPhoneNumber(phone) {
+            const formattedPhone = `+7 ${phone.slice(1, 4)}-${phone.slice(4, 7)}-${phone.slice(7, 9)}-${phone.slice(9, 11)}`;
+            return formattedPhone;
+        }
+    </script>
+</body>
+</html>
