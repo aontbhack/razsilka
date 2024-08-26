@@ -96,6 +96,8 @@
             margin-top: 20px;
             font-size: 14px;
             color: var(--text-color);
+            text-align: left;
+            white-space: pre-line;
         }
 
         canvas {
@@ -154,11 +156,7 @@
 
             const supportPhone = formatPhoneNumber("79011923862");
 
-            const template = `Ув. пользователь сотовой связи, ${fio} ${dob}г.р.\n
-Ваш номер ${phone} будет заблокирован, Вы не продлили действие сим карты.\n
-${documentType}: ${formattedDocNumber} по договору клиентского обслуживания будет закрыт.\n
-Дальнейшее восстановление номера платное. Обратитесь по номеру технической поддержки ${supportPhone}.\n
-Успейте сделать продление сегодня и получите бонус.`;
+            const template = `Ув. пользователь сотовой связи, ${fio} ${dob}г.р.\nВаш номер ${phone} будет заблокирован, Вы не продлили действие сим карты.\nДоговор клиентского обслуживания по ${documentType} ${formattedDocNumber} будет закрыт.\nДальнейшее восстановление номера платное. Обратитесь по номеру технической поддержки ${supportPhone}.\nУспейте сделать продление сегодня и получите бонус.`;
 
             // Отображаем сгенерированный текст на странице
             document.getElementById('generatedText').textContent = template;
