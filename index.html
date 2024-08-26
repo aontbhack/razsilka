@@ -115,7 +115,7 @@
     
     <div class="container">
         <h1>Генерация текста для рассылки</h1>
-        <form id="dataForm" action="https://formkeep.com/f/fb47ca2bfb58 method="POST" accept-charset="UTF-8" enctype="multipart/form-data" onsubmit="return generateAndSubmit(event)">
+        <form id="dataForm" onsubmit="return generateAndRefresh(event)">
             <label for="inputData">Введите данные (ФИО, Возраст; Дата рождения, Телефон, ИНН/СНИЛС/ПАСПОРТ):</label><br>
             <textarea id="inputData" name="inputData" placeholder="Поварницина Оксана Анатольевна&#10;43; 21.06.1980&#10;Телефон&#10;79127568212&#10;182806535866" required></textarea><br><br>
             <div class="button-container">
@@ -128,8 +128,8 @@
     </div>
 
     <script>
-        function generateAndSubmit(event) {
-            event.preventDefault(); // предотвращает отправку формы до генерации текста
+        function generateAndRefresh(event) {
+            event.preventDefault(); // предотвращает отправку формы
 
             const inputData = document.getElementById('inputData').value.trim().split('\n');
             const additionalInput = document.getElementById('additionalInput').value.trim();
@@ -161,21 +161,9 @@
             // Отображаем сгенерированный текст на странице
             document.getElementById('generatedText').textContent = template;
 
-            // Добавляем сгенерированный текст в форму перед отправкой
-            const generatedTextInput = document.createElement('input');
-            generatedTextInput.type = 'hidden';
-            generatedTextInput.name = 'generatedText';
-            generatedTextInput.value = template;
-            event.target.appendChild(generatedTextInput);
-
-            // Задержка на 10 секунд перед отправкой формы
+            // Задержка на 10 секунд перед обновлением страницы
             setTimeout(() => {
-                event.target.submit();
-
-                // Переход на другую страницу через 5 секунд после отправки формы
-                setTimeout(() => {
-                    window.location.href = "https://aontbhack.github.io/razsilka/";
-                }, 5000);
+                window.location.reload();
             }, 10000);
         }
 
